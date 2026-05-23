@@ -30,6 +30,7 @@ function ChatContent() {
   const [activeId, setActiveIdState] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MSG]);
   const [input, setInput] = useState("");
+  const [showSamples, setShowSamples] = useState(true);
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [slots, setSlots] = useState<RequirementSlots>({});
@@ -157,26 +158,28 @@ function ChatContent() {
       <Sidebar onSelect={selectConversation} onNew={newConversation} activeId={activeId} />
       <main className="flex flex-1 flex-col overflow-hidden">
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-6 min-h-0">
-          {/* Samples */}
-          <div className="mb-4 flex flex-wrap gap-2">
-            {SAMPLES.map((s) => (
-              <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }} className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--text)] shadow-sm transition-all hover:border-zinc-400">
-                {s}
-              </button>
-            ))}
-          </div>
-
           {/* Chat */}
           <div className="flex-1 overflow-hidden min-h-0">
             <ChatPanel messages={messages} loading={loading} recommendations={recommendations} />
           </div>
 
-          {/* Input */}
-          <div className="mt-4 flex gap-3">
+          {/* Input area */}
+          <div className="mt-3 space-y-3">
+            {showSamples && (
+              <div className="flex flex-wrap gap-2">
+                {SAMPLES.map((s) => (
+                  <button key={s} onClick={() => { setInput(s); setShowSamples(false); inputRef.current?.focus(); }} className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--text)] shadow-sm transition-all hover:border-zinc-400">
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-3">
             <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && onSend()} placeholder="描述你的出海需求..." className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4 text-lg placeholder:text-zinc-300 outline-none transition-all focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100" />
             <button onClick={() => onSend()} disabled={loading} className="rounded-xl bg-[var(--accent)] px-8 py-4 text-lg font-semibold text-white shadow-sm transition-all hover:bg-zinc-700 disabled:opacity-40">
               发送
             </button>
+            </div>
           </div>
         </div>
       </main>
