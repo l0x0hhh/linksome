@@ -96,7 +96,7 @@ export default function AdminPage() {
           <input placeholder="国家 / 地区" className="rounded-xl border border-[var(--border)] bg-zinc-50 px-5 py-4 text-lg outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100" />
           <input placeholder="服务类型" className="rounded-xl border border-[var(--border)] bg-zinc-50 px-5 py-4 text-lg outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100" />
           <input placeholder="报价区间" className="rounded-xl border border-[var(--border)] bg-zinc-50 px-5 py-4 text-lg outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100" />
-          <button type="button" className="rounded-xl bg-[var(--accent)] px-8 py-4 text-lg font-semibold text-white shadow-sm transition-all hover:bg-zinc-700 sm:col-span-2">保存（演示模式）</button>
+          <button type="button" className="rounded-xl bg-[var(--accent)] px-8 py-4 text-lg font-semibold text-white shadow-sm transition-all hover:bg-zinc-700 sm:col-span-2">保存</button>
         </form>
       </section>
 
