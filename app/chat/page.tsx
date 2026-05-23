@@ -4,6 +4,18 @@ import { Suspense, useMemo, useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { ChatMessage, Recommendation, RequirementSlots } from "@/lib/types";
+import { LLMConfig } from "@/lib/llm";
+
+function readLLMConfig(): LLMConfig | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("linkmatch_llm_config");
+    if (!raw) return null;
+    const config = JSON.parse(raw);
+    if (config.apiKey && config.baseUrl && config.model) return config;
+  } catch { /* ignore */ }
+  return null;
+}
 
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -36,7 +48,7 @@ function ChatContent() {
     const idx = nextMessages.length;
     setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
-    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg, history: messages }) });
+    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg, history: messages, llmConfig: readLLMConfig() }) });
     if (!res.body) { setLoading(false); return; }
 
     const reader = res.body.getReader();

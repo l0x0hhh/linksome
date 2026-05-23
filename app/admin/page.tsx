@@ -1,6 +1,27 @@
+"use client";
+
 import { providers } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { LLMConfig } from "@/lib/llm";
 
 export default function AdminPage() {
+  const [llmConfig, setLLMConfig] = useState<LLMConfig>({ baseUrl: "", apiKey: "", model: "" });
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("linkmatch_llm_config");
+      if (raw) setLLMConfig(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  const saveLLMConfig = () => {
+    if (llmConfig.apiKey && llmConfig.baseUrl && llmConfig.model) {
+      localStorage.setItem("linkmatch_llm_config", JSON.stringify(llmConfig));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
+  };
   const countryCount = new Set(providers.map((p) => p.country)).size;
   const serviceCount = new Set(providers.flatMap((p) => p.serviceTypes)).size;
 
@@ -23,6 +44,49 @@ export default function AdminPage() {
             <div className="mt-5 text-lg font-semibold text-[var(--text-muted)]">{label}</div>
           </div>
         ))}
+      </section>
+
+      {/* LLM API Config */}
+      <section className="mt-14 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm animate-fade-up delay-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2">AI 模型配置</h2>
+        <p className="text-base text-[var(--text-muted)] mb-6">配置后对话将使用真实 AI 模型；留空则使用本地规则引擎。</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label className="block text-sm font-semibold text-[var(--text-muted)] mb-1.5">Base URL</label>
+            <input
+              value={llmConfig.baseUrl}
+              onChange={(e) => setLLMConfig({ ...llmConfig, baseUrl: e.target.value })}
+              placeholder="https://api.deepseek.com/v1"
+              className="w-full rounded-xl border border-[var(--border)] bg-zinc-50 px-4 py-3 text-base outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100 font-[family-name:var(--font-mono)]"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-[var(--text-muted)] mb-1.5">API Key</label>
+            <input
+              value={llmConfig.apiKey}
+              onChange={(e) => setLLMConfig({ ...llmConfig, apiKey: e.target.value })}
+              type="password"
+              placeholder="sk-..."
+              className="w-full rounded-xl border border-[var(--border)] bg-zinc-50 px-4 py-3 text-base outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100 font-[family-name:var(--font-mono)]"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-[var(--text-muted)] mb-1.5">Model</label>
+            <input
+              value={llmConfig.model}
+              onChange={(e) => setLLMConfig({ ...llmConfig, model: e.target.value })}
+              placeholder="deepseek-chat"
+              className="w-full rounded-xl border border-[var(--border)] bg-zinc-50 px-4 py-3 text-base outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100 font-[family-name:var(--font-mono)]"
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex items-center gap-4">
+          <button type="button" onClick={saveLLMConfig} className="rounded-xl bg-[var(--cta)] px-6 py-3 text-base font-semibold text-white shadow-sm transition-all hover:opacity-90">
+            保存配置
+          </button>
+          {saved && <span className="text-base text-[var(--success)] font-medium">✓ 已保存</span>}
+          <span className="text-sm text-[var(--text-muted)]">保存在浏览器本地，不会上传到服务器</span>
+        </div>
       </section>
 
       <section className="mt-14 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm animate-fade-up delay-2">
