@@ -146,12 +146,21 @@ function ChatContent() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-[calc(100vh-57px)]">
       <Sidebar onSelect={selectConversation} onNew={newConversation} activeId={activeId} />
       <main className="flex flex-1 flex-col overflow-hidden">
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 pt-6 pb-4 min-h-0">
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-6 min-h-0">
+          {/* Samples */}
+          <div className="mb-4 flex flex-wrap gap-2">
+            {SAMPLES.map((s) => (
+              <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }} className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--text)] shadow-sm transition-all hover:border-zinc-400">
+                {s}
+              </button>
+            ))}
+          </div>
+
           {/* Chat */}
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 overflow-hidden min-h-0">
             <ChatPanel messages={messages} loading={loading} recommendations={recommendations} />
           </div>
 
