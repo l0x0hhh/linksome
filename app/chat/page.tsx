@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { Sidebar } from "@/components/chat/sidebar";
 import { ChatMessage, Recommendation, RequirementSlots } from "@/lib/types";
@@ -20,59 +19,54 @@ function readLLMConfig(): LLMConfig | null {
 }
 
 const INITIAL_MSG: ChatMessage = { role: "assistant", content: "你好，我是 LinkMatch。你可以直接描述出海需求，我会逐步拆解并推荐匹配的服务商。" };
-
 const SAMPLES = ["我想在新加坡注册公司，预算 3 万以内", "英国跨境电商找税务服务", "加拿大工签续签，中文顾问"];
 
 function ChatContent() {
-  const searchParams = useSearchParams();
-  const prefilledQuery = searchParams.get("q");
-
   const [activeId, setActiveIdState] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MSG]);
   const [input, setInput] = useState("");
-  const [showSamples, setShowSamples] = useState(true);
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [slots, setSlots] = useState<RequirementSlots>({});
-  const [completeness, setCompleteness] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [showSamples, setShowSamples] = useState(true);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const activeIdRef = useRef<string | null>(null);
 
-  // Sync activeId with ref for use in async callbacks
   const setActiveId = useCallback((id: string | null) => {
     activeIdRef.current = id;
     setActiveIdState(id);
   }, []);
 
-  // Load active conversation on mount
+  // Init conversation
   useEffect(() => {
     const savedId = getActiveId();
     if (savedId) {
       const convo = getConversation(savedId);
-      if (convo) {
-        setActiveId(savedId);
-        setMessages(convo.messages.length > 0 ? convo.messages : [INITIAL_MSG]);
-        return;
-      }
+      if (convo) { setActiveId(savedId); setMessages(convo.messages.length > 0 ? convo.messages : [INITIAL_MSG]); return; }
     }
-    // Start fresh
     const c = createConversation();
     setActiveId(c.id);
   }, []);
 
-  // Prefill from landing page
-  useEffect(() => {
-    if (prefilledQuery) setInput(prefilledQuery);
-  }, [prefilledQuery]);
-
-  useEffect(() => { inputRef.current?.focus(); }, [activeId]);
-
-  // 进入聊天页隐藏 body 滚动条，离开时恢复
+  // Hide body scrollbar on mount, restore on unmount
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, []);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Auto-resize textarea
+  const autoResize = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+  };
 
   const selectConversation = useCallback((id: string) => {
     setActiveId(id);
@@ -80,8 +74,7 @@ function ChatContent() {
     if (convo) {
       setMessages(convo.messages.length > 0 ? convo.messages : [INITIAL_MSG]);
       setRecommendations([]);
-      setSlots({});
-      setCompleteness(0);
+      setShowSamples(true);
     }
   }, [setActiveId]);
 
@@ -90,13 +83,13 @@ function ChatContent() {
     setActiveId(c.id);
     setMessages([INITIAL_MSG]);
     setRecommendations([]);
-    setSlots({});
-    setCompleteness(0);
+    setShowSamples(true);
   }, [setActiveId]);
 
-  const onSend = async (text?: string) => {
-    const msg = (text ?? input).trim();
+  const onSend = async () => {
+    const msg = input.trim();
     if (!msg || loading) return;
+    setShowSamples(false);
 
     const nextMessages = [...messages, { role: "user", content: msg } as ChatMessage];
     setMessages(nextMessages);
@@ -105,10 +98,10 @@ function ChatContent() {
     const idx = nextMessages.length;
     setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
-    // Persist user message
-    if (activeIdRef.current) {
-      updateConversation(activeIdRef.current, nextMessages);
-    }
+    // Reset textarea height
+    if (inputRef.current) { inputRef.current.style.height = "auto"; }
+
+    if (activeIdRef.current) updateConversation(activeIdRef.current, nextMessages);
 
     const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg, history: messages, llmConfig: readLLMConfig() }) });
     if (!res.body) { setLoading(false); return; }
@@ -135,50 +128,60 @@ function ChatContent() {
         }
         if (type === "done") {
           setRecommendations(parsed.recommendations ?? []);
-          setSlots(parsed.slots ?? {});
-          setCompleteness(parsed.completeness ?? 0);
-          // Persist full conversation
-          setMessages((prev) => {
-            finalMessages = prev;
-            return prev;
-          });
+          setMessages((prev) => { finalMessages = prev; return prev; });
         }
       }
     }
-
     setLoading(false);
-    // Final persistence
-    if (activeIdRef.current && finalMessages.length > 0) {
-      updateConversation(activeIdRef.current, finalMessages);
+    if (activeIdRef.current && finalMessages.length > 0) updateConversation(activeIdRef.current, finalMessages);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
     }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-white">
       <Sidebar onSelect={selectConversation} onNew={newConversation} activeId={activeId} />
       <main className="flex flex-1 flex-col overflow-hidden">
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-6 min-h-0">
-          {/* Chat */}
-          <div className="flex-1 overflow-hidden min-h-0">
+        <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-6 min-h-0">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto no-scrollbar pt-6">
             <ChatPanel messages={messages} loading={loading} recommendations={recommendations} />
+            <div ref={bottomRef} />
           </div>
 
-          {/* Input area */}
-          <div className="mt-3 space-y-3">
+          {/* Input area — fixed at bottom */}
+          <div className="shrink-0 pb-5 pt-3">
             {showSamples && (
-              <div className="flex flex-wrap gap-2">
+              <div className="mb-3 flex flex-wrap gap-2">
                 {SAMPLES.map((s) => (
-                  <button key={s} onClick={() => { setInput(s); setShowSamples(false); inputRef.current?.focus(); }} className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--text)] shadow-sm transition-all hover:border-zinc-400">
+                  <button key={s} onClick={() => { setInput(s); setShowSamples(false); setTimeout(() => { inputRef.current?.focus(); autoResize(); }, 50); }} className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-600 transition-all hover:border-zinc-400 hover:text-zinc-900">
                     {s}
                   </button>
                 ))}
               </div>
             )}
-            <div className="flex gap-3">
-            <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && onSend()} placeholder="描述你的出海需求..." className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4 text-lg placeholder:text-zinc-300 outline-none transition-all focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100" />
-            <button onClick={() => onSend()} disabled={loading} className="rounded-xl bg-[var(--accent)] px-8 py-4 text-lg font-semibold text-white shadow-sm transition-all hover:bg-zinc-700 disabled:opacity-40">
-              发送
-            </button>
+            <div className="flex items-end gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 focus-within:border-zinc-400 focus-within:bg-white transition-colors">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => { setInput(e.target.value); autoResize(); }}
+                onKeyDown={handleKeyDown}
+                placeholder="描述你的出海需求..."
+                rows={1}
+                className="flex-1 resize-none bg-transparent text-base leading-relaxed outline-none placeholder:text-zinc-300 max-h-[160px] overflow-y-auto no-scrollbar"
+              />
+              <button
+                onClick={onSend}
+                disabled={loading || !input.trim()}
+                className="shrink-0 rounded-lg bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white transition-all hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                发送
+              </button>
             </div>
           </div>
         </div>
@@ -188,5 +191,5 @@ function ChatContent() {
 }
 
 export default function ChatPage() {
-  return <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-lg text-[var(--text-muted)]">加载中...</div>}><ChatContent /></Suspense>;
+  return <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-zinc-400">加载中...</div>}><ChatContent /></Suspense>;
 }
