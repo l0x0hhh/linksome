@@ -149,7 +149,7 @@ function ChatContent() {
     <div className="flex h-[calc(100vh-57px)]">
       <Sidebar onSelect={selectConversation} onNew={newConversation} activeId={activeId} />
       <main className="flex flex-1 flex-col overflow-hidden">
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-6">
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-6 min-h-0">
           {/* Samples */}
           <div className="mb-4 flex flex-wrap gap-2">
             {SAMPLES.map((s) => (
@@ -160,7 +160,7 @@ function ChatContent() {
           </div>
 
           {/* Chat */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <ChatPanel messages={messages} loading={loading} recommendations={recommendations} />
           </div>
 

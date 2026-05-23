@@ -33,7 +33,7 @@ function assistantContent(text: string) {
 
 export function ChatPanel({ messages, loading, recommendations = [] }: Props) {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm min-h-0">
       <div className="flex shrink-0 items-center gap-2.5 border-b border-[var(--border)] px-5 py-4">
         <span className="h-2.5 w-2.5 rounded-full bg-[var(--success)]" />
         <span className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)]">AI 对话 · LinkMatch</span>
