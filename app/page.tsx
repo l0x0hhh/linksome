@@ -15,7 +15,7 @@ export default function LandingPage() {
         </div>
 
         <h1 className="mt-10 max-w-3xl font-[family-name:var(--font-serif)] text-6xl font-bold leading-[1.12] tracking-tight text-[var(--accent)] animate-fade-up delay-1 sm:text-7xl lg:text-8xl">
-          把你的出海需求，
+          把你的出海需求
           <br />
           变成可执行的
           <span className="text-[var(--cta)]">服务方案</span>
