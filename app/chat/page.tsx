@@ -66,6 +66,13 @@ function ChatContent() {
 
   useEffect(() => { inputRef.current?.focus(); }, [activeId]);
 
+  // 进入聊天页隐藏 body 滚动条，离开时恢复
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   const selectConversation = useCallback((id: string) => {
     setActiveId(id);
     const convo = getConversation(id);
@@ -146,7 +153,7 @@ function ChatContent() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-57px)]">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar onSelect={selectConversation} onNew={newConversation} activeId={activeId} />
       <main className="flex flex-1 flex-col overflow-hidden">
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-6 min-h-0">

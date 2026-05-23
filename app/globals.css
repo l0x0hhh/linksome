@@ -49,6 +49,15 @@ body {
   color: var(--cta);
 }
 
+/* Hide scrollbar but keep scroll function — cross-browser */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(28px); }
   to   { opacity: 1; transform: translateY(0); }

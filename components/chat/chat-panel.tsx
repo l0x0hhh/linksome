@@ -39,7 +39,7 @@ export function ChatPanel({ messages, loading, recommendations = [] }: Props) {
         <span className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)]">AI 对话 · LinkMatch</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 no-scrollbar">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[82%] rounded-2xl px-5 py-3.5 text-base animate-fade-in ${m.role === "user" ? "bg-[var(--accent)] text-white" : "bg-zinc-50 text-[var(--text)] border border-[var(--border)]"}`} style={{ animationDelay: `${i * 0.06}s` }}>

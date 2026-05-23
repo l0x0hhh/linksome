@@ -52,7 +52,7 @@ export function Sidebar({ onSelect, onNew, activeId }: Props) {
         新对话
       </button>
 
-      <div className="mt-3 flex-1 overflow-y-auto px-2">
+      <div className="mt-3 flex-1 overflow-y-auto px-2 no-scrollbar">
         {convos.length === 0 && (
           <p className="px-3 py-6 text-center text-sm text-[var(--text-muted)]">暂无对话记录</p>
         )}
