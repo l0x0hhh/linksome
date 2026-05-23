@@ -37,9 +37,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </div>
         </header>
         {children}
-        <footer className="border-t border-[var(--border)] py-10 text-center text-base text-[var(--text-muted)]">
-          为面试演示而构建 · 数据源于 Mock 服务商知识库
-        </footer>
       </body>
     </html>
   );

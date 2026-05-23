@@ -33,13 +33,13 @@ function assistantContent(text: string) {
 
 export function ChatPanel({ messages, loading, recommendations = [] }: Props) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
-      <div className="flex items-center gap-2.5 border-b border-[var(--border)] px-5 py-4">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
+      <div className="flex shrink-0 items-center gap-2.5 border-b border-[var(--border)] px-5 py-4">
         <span className="h-2.5 w-2.5 rounded-full bg-[var(--success)]" />
         <span className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)]">AI 对话 · LinkMatch</span>
       </div>
 
-      <div className="max-h-[440px] overflow-y-auto px-5 py-5 space-y-4">
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[82%] rounded-2xl px-5 py-3.5 text-base animate-fade-in ${m.role === "user" ? "bg-[var(--accent)] text-white" : "bg-zinc-50 text-[var(--text)] border border-[var(--border)]"}`} style={{ animationDelay: `${i * 0.06}s` }}>
@@ -59,7 +59,7 @@ export function ChatPanel({ messages, loading, recommendations = [] }: Props) {
       </div>
 
       {recommendations.length > 0 && (
-        <div className="border-t border-[var(--border)] px-5 py-5 space-y-3 animate-fade-up">
+        <div className="shrink-0 border-t border-[var(--border)] px-5 py-5 space-y-3 animate-fade-up">
           <p className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)]">为你推荐 · Top {recommendations.length}</p>
           {recommendations.map((r) => (
             <a key={r.provider.id} href={`/provider/${r.provider.id}`} className="group block rounded-xl border border-[var(--border)] bg-zinc-50 p-5 transition-all hover:border-zinc-400 hover:shadow-md">
