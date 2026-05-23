@@ -1,8 +1,7 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo, useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState, useEffect, useRef } from "react";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { ChatMessage, Recommendation, RequirementSlots } from "@/lib/types";
 
@@ -20,21 +19,12 @@ function ChatContent() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const samples = useMemo(
-    () => [
-      "我想在新加坡注册公司，预算 3 万以内",
-      "我在英国做跨境电商，想找税务服务",
-      "我需要加拿大工签续签，最好中文顾问",
-    ],
+    () => ["我想在新加坡注册公司，预算 3 万以内", "英国跨境电商找税务服务", "加拿大工签续签，中文顾问"],
     []
   );
 
-  useEffect(() => {
-    if (prefilledQuery) setInput(prefilledQuery);
-  }, [prefilledQuery]);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  useEffect(() => { if (prefilledQuery) setInput(prefilledQuery); }, [prefilledQuery]);
+  useEffect(() => { inputRef.current?.focus(); }, []);
 
   const onSend = async (text?: string) => {
     const msg = (text ?? input).trim();
@@ -43,14 +33,10 @@ function ChatContent() {
     setMessages(nextMessages);
     setInput("");
     setLoading(true);
-    const assistantIndex = nextMessages.length;
+    const idx = nextMessages.length;
     setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: msg, history: messages }),
-    });
+    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg, history: messages }) });
     if (!res.body) { setLoading(false); return; }
 
     const reader = res.body.getReader();
@@ -69,11 +55,7 @@ function ChatContent() {
         if (!type || !data) continue;
         const parsed = JSON.parse(data);
         if (type === "token") {
-          setMessages((prev) => {
-            const copy = [...prev];
-            copy[assistantIndex] = { role: "assistant", content: (copy[assistantIndex]?.content ?? "") + parsed.chunk };
-            return copy;
-          });
+          setMessages((prev) => { const copy = [...prev]; copy[idx] = { role: "assistant", content: (copy[idx]?.content ?? "") + parsed.chunk }; return copy; });
         }
         if (type === "done") {
           setRecommendations(parsed.recommendations ?? []);
@@ -86,50 +68,36 @@ function ChatContent() {
   };
 
   return (
-    <main className="mx-auto grid max-w-6xl gap-8 px-6 py-8 lg:grid-cols-3 lg:py-12">
-      <aside className="space-y-5 lg:col-span-1 animate-fade-up">
-        <a href="/" className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors">
-          &larr; 返回首页
-        </a>
+    <main className="mx-auto grid max-w-6xl gap-8 px-6 py-10 lg:grid-cols-3 lg:py-16">
+      <aside className="space-y-6 lg:col-span-1 animate-fade-up">
+        <a href="/" className="text-base text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors">&larr; 返回首页</a>
+
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="deco-diamond" />
-            <span className="text-[10px] font-bold uppercase tracking-[.2em] text-[var(--text-muted)]">需求画像</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              ["目标地区", slots.country],
-              ["服务类型", slots.serviceType],
-              ["预算范围", slots.budget],
-              ["时效要求", slots.timeline],
-            ].map(([label, value]) => (
-              <div key={label} className="card-lift rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 shadow-sm">
-                <div className="text-[10px] font-semibold uppercase tracking-[.15em] text-[var(--text-muted)]">{label}</div>
-                <div className={`mt-1 text-sm font-medium font-[family-name:var(--font-mono)] ${value ? "text-[var(--accent)]" : "text-[var(--border-strong)]"}`}>
-                  {value || "—"}
-                </div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-4">需求画像</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {[["目标地区", slots.country], ["服务类型", slots.serviceType], ["预算范围", slots.budget], ["时效要求", slots.timeline]].map(([l, v]) => (
+              <div key={l} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+                <div className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">{l}</div>
+                <div className={`mt-2 text-base font-medium font-[family-name:var(--font-mono)] ${v ? "text-[var(--accent)]" : "text-zinc-300"}`}>{v || "—"}</div>
               </div>
             ))}
           </div>
-          <div className="mt-3">
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="font-semibold uppercase tracking-wider text-[var(--text-muted)]">完整度</span>
-              <span className="font-[family-name:var(--font-mono)] text-[var(--text)]">{completeness}%</span>
+          <div className="mt-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-semibold text-[var(--text-muted)]">完整度</span>
+              <span className="font-[family-name:var(--font-mono)]">{completeness}%</span>
             </div>
-            <div className="mt-1.5 h-1.5 w-full rounded-full bg-[var(--border)] overflow-hidden">
-              <div className="h-1.5 rounded-full bg-[var(--cta)] transition-all duration-700 ease-out" style={{ width: `${completeness}%` }} />
+            <div className="mt-2 h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
+              <div className="h-2 rounded-full bg-[var(--cta)] transition-all duration-700 ease-out" style={{ width: `${completeness}%` }} />
             </div>
           </div>
         </div>
+
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-[.2em] text-[var(--text-muted)] mb-2">试试这些</div>
-          <div className="flex flex-wrap gap-1.5">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-3">试试这些</h2>
+          <div className="flex flex-wrap gap-2">
             {samples.map((s) => (
-              <button
-                key={s}
-                onClick={() => { setInput(s); inputRef.current?.focus(); }}
-                className="rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text)] shadow-sm transition-all hover:border-[var(--accent)] hover:-translate-y-0.5"
-              >
+              <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }} className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-base text-[var(--text)] shadow-sm transition-all hover:border-zinc-400">
                 {s}
               </button>
             ))}
@@ -139,20 +107,9 @@ function ChatContent() {
 
       <section className="lg:col-span-2 animate-fade-up delay-1">
         <ChatPanel messages={messages} loading={loading} recommendations={recommendations} />
-        <div className="mt-4 flex gap-2">
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && onSend()}
-            placeholder="例如：我想在新加坡注册公司，预算 3 万以内"
-            className="flex-1 rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] shadow-sm outline-none transition-all focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/5 focus:shadow-md"
-          />
-          <button
-            onClick={() => onSend()}
-            disabled={loading}
-            className="rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#0F2A38] hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40"
-          >
+        <div className="mt-4 flex gap-3">
+          <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && onSend()} placeholder="描述你的出海需求..." className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4 text-lg placeholder:text-zinc-300 outline-none transition-all focus:border-[var(--accent)] focus:ring-4 focus:ring-zinc-100" />
+          <button onClick={() => onSend()} disabled={loading} className="rounded-xl bg-[var(--accent)] px-8 py-4 text-lg font-semibold text-white shadow-sm transition-all hover:bg-zinc-700 disabled:opacity-40">
             发送
           </button>
         </div>
@@ -161,4 +118,6 @@ function ChatContent() {
   );
 }
 
-export default function ChatPage() { return (<Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><span className="text-[var(--text-muted)]">加载中...</span></div>}><ChatContent /></Suspense>); }
+export default function ChatPage() {
+  return <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-lg text-[var(--text-muted)]">加载中...</div>}><ChatContent /></Suspense>;
+}

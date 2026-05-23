@@ -29,18 +29,18 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-CN" className={`${playfair.variable} ${dmSans.variable} ${jetbrains.variable} h-full antialiased`}>
-      <body className="min-h-full bg-[var(--bg)] text-[var(--text)]">
+      <body className="min-h-full bg-[var(--bg)] text-[var(--text)] text-[1.0625rem]">
         <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-md">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
             <Link href="/" className="flex items-center gap-2 no-underline">
-              <span className="font-[family-name:var(--font-serif)] text-xl font-semibold italic tracking-tight text-[var(--accent)]">
+              <span className="font-[family-name:var(--font-serif)] text-2xl font-bold italic tracking-tight text-[var(--accent)]">
                 LinkMatch
               </span>
-              <span className="hidden rounded-full border border-[var(--border-strong)] px-2 py-0.5 text-[10px] uppercase tracking-widest text-[var(--text-muted)] sm:inline">
+              <span className="hidden rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] sm:inline">
                 Beta
               </span>
             </Link>
-            <nav className="flex items-center gap-6 text-sm">
+            <nav className="flex items-center gap-8 text-base">
               <Link href="/decompose" className="text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]">
                 需求拆解
               </Link>
@@ -51,7 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </div>
         </header>
         {children}
-        <footer className="border-t border-[var(--border)] py-8 text-center text-xs text-[var(--text-muted)]">
+        <footer className="border-t border-[var(--border)] py-10 text-center text-base text-[var(--text-muted)]">
           为面试演示而构建 · 数据源于 Mock 服务商知识库
         </footer>
       </body>
