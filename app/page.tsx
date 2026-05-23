@@ -29,9 +29,10 @@ export default function LandingPage() {
           AI-Powered Cross-Border Matching
         </div>
 
-        <h1 className="mt-8 max-w-2xl font-[family-name:var(--font-serif)] text-5xl font-semibold leading-[1.15] tracking-tight text-[var(--accent)] animate-fade-up delay-1 sm:text-6xl lg:text-7xl">
-          把你的出海需求
-          <span className="mt-3 block italic text-[var(--cta)]">变成可执行的服务方案</span>
+        <h1 className="mt-8 max-w-2xl font-[family-name:var(--font-serif)] text-5xl font-semibold leading-[1.25] tracking-tight text-[var(--accent)] animate-fade-up delay-1 sm:text-6xl lg:text-7xl">
+          把你的出海需求，
+          <br />
+          变成可执行的服务方案。
         </h1>
 
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--text-muted)] animate-fade-up delay-2">
